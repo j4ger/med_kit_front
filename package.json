@@ -3,17 +3,24 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "serve": "vue-cli-service serve",
+    "serve": "vue-cli-service serve --host v04.local",
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
+    "@vueuse/core": "^5.1.4",
+    "@vueuse/integrations": "^5.1.4",
     "core-js": "^3.6.5",
+    "nprogress": "^0.2.0",
     "register-service-worker": "^1.7.1",
     "vue": "^3.0.0",
-    "vue-router": "^4.0.0-0"
+    "vue-router": "^4.0.0-0",
+    "vue-toast-notification": "^2.0.0"
   },
   "devDependencies": {
+    "@vicons/ionicons5": "^0.10.0",
+    "@vicons/material": "^0.10.0",
+    "@vicons/utils": "^0.1.4",
     "@vue/cli-plugin-babel": "~4.5.0",
     "@vue/cli-plugin-eslint": "~4.5.0",
     "@vue/cli-plugin-pwa": "~4.5.0",
@@ -21,11 +28,18 @@
     "@vue/cli-service": "~4.5.0",
     "@vue/compiler-sfc": "^3.0.0",
     "@vue/eslint-config-prettier": "^6.0.0",
+    "autoprefixer": "^9.8.6",
     "babel-eslint": "^10.1.0",
     "eslint": "^6.7.2",
     "eslint-plugin-prettier": "^3.3.1",
     "eslint-plugin-vue": "^7.0.0",
-    "prettier": "^2.2.1"
+    "espree": "^8.0.0",
+    "naive-ui": "^2.15.5",
+    "postcss": "^7.0.36",
+    "postcss-cli": "^8.3.1",
+    "prettier": "^2.2.1",
+    "rollup-plugin-postcss": "^4.0.0",
+    "tailwindcss": "npm:@tailwindcss/postcss7-compat@^2.2.6"
   },
   "eslintConfig": {
     "root": true,
@@ -37,8 +51,11 @@
       "eslint:recommended",
       "@vue/prettier"
     ],
+    "parser": "vue-eslint-parser",
     "parserOptions": {
-      "parser": "babel-eslint"
+      "parser": "espree",
+      "ecmaVersion": 2022,
+      "sourceType": "module"
     },
     "rules": {}
   },

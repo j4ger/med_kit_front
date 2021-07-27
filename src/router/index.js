@@ -1,20 +1,33 @@
 import { createRouter, createWebHistory } from "vue-router";
-import Home from "../views/Home.vue";
 
 const routes = [
   {
-    path: "/",
-    name: "Home",
-    component: Home,
+    path: "/profile/submit/:product_barcode",
+    name: "提交档案",
+    component: () =>
+      import(
+        /* webpackChunkName: "submitprofile" */ "../views/profile/SubmitProfile.vue"
+      ),
   },
   {
-    path: "/about",
-    name: "About",
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
+    path: "/product/view/:product_barcode",
+    name: "查看产品信息",
     component: () =>
-      import(/* webpackChunkName: "about" */ "../views/About.vue"),
+      import(
+        /* webpackChunkName: "viewproduct" */ "../views/product/ViewProduct.vue"
+      ),
+  },
+  {
+    path: "/:pathMatch(.*)*",
+    name: "页面不存在",
+    component: () =>
+      import(/* webpackChunkName: "notfound" */ "../views/error/NotFound.vue"),
+    props: {
+      messages: {
+        first: "这可能是二维码损坏了",
+        second: "如果多次重试仍是这样，请联系客服",
+      },
+    },
   },
 ];
 
