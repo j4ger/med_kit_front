@@ -83,22 +83,23 @@ const toast = inject("toast");
 
 const api = inject("api");
 
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
+const router = useRouter();
 const productBarcode = useRoute().params.product_barcode;
 
 const submit = async () => {
-  console.log(values.value);
   formRef.value.validate(async (errors) => {
     if (!errors) {
-      console.log(JSON.stringify(values.value));
       const result = await api(
         "/profile/submit_profile/" + productBarcode,
         "POST",
         values.value
       );
       if (result.success) {
-        console.log("yay");
-        //TODO: Result page
+        router.replace({
+          name: "查看产品信息",
+          params: { product_barcode: productBarcode },
+        });
       }
     } else {
       errors.flat().forEach((item) => toast.error(item.message));

@@ -5,6 +5,7 @@ const STATE_CONTEXT = Symbol();
 export function useGlobalStateProvider(initial_value) {
   const state = reactive(initial_value);
   provide(STATE_CONTEXT, state);
+  return state;
 }
 
 export function useGlobalState() {

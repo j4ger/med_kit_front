@@ -92,10 +92,10 @@ watchEffect(() => {
     }
   }
 
-  const modelValue =
-    province + "-" + city + "-" + county + " " + inputValue.value;
+  const modelValue = cascaderValue.value
+    ? province + "-" + city + "-" + county + " " + inputValue.value
+    : "";
   emit("update:value", modelValue);
-  console.log("emitted:" + modelValue);
 });
 </script>
 

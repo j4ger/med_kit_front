@@ -6,9 +6,11 @@
           <ArrowCircleDownOutlined
             v-if="productDigest.data.current_stage == 'Initialized'"
           />
-
           <ArrowCircleUpOutlined
             v-else-if="productDigest.data.current_stage == 'Submitted'"
+          />
+          <AccessTimeOutlined
+            v-else-if="productDigest.data.current_stage == 'Sampled'"
           />
           <CheckCircleOutlined v-else />
         </n-icon>
@@ -40,6 +42,7 @@ import {
   ArrowCircleDownOutlined,
   ArrowCircleUpOutlined,
   CheckCircleOutlined,
+  AccessTimeOutlined,
 } from "@vicons/material";
 
 import { inject } from "vue";

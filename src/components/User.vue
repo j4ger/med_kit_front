@@ -29,7 +29,12 @@
     </div>
   </div>
   <Teleport to="#globalRoot">
-    <n-drawer v-model:show="showLoginDrawer" placement="top" :height="300">
+    <n-drawer
+      v-model:show="showLoginDrawer"
+      placement="top"
+      :height="300"
+      class="z-20"
+    >
       <n-drawer-content class="containter mx-auto">
         <template #header>
           <div class="container mx-auto">
@@ -77,7 +82,12 @@
   </Teleport>
 
   <Teleport to="#globalRoot">
-    <n-drawer v-model:show="showManageDrawer" placement="top" :height="300">
+    <n-drawer
+      v-model:show="showManageDrawer"
+      placement="top"
+      :height="300"
+      class="z-20"
+    >
       <n-drawer-content class="container mx-auto">
         <template #header>
           <div class="flex items-center" v-if="globalState.user.loggedIn">
@@ -119,6 +129,7 @@
       v-model:show="showChangePasswordDrawer"
       placement="top"
       :height="280"
+      class="z-30"
     >
       <n-drawer-content>
         <n-form
@@ -176,10 +187,13 @@ import {
 import { inject, ref } from "vue";
 const api = inject("api");
 
-import { useGlobalState } from "../global_state";
+import { useGlobalState } from "../GlobalState";
 const globalState = useGlobalState();
 
 const showLoginDrawer = ref(false);
+
+import { useRoute } from "vue-router";
+const route = useRoute();
 
 const loginState = await api("/user/verify_login");
 if (loginState.success) {
@@ -189,8 +203,33 @@ if (loginState.success) {
     loggedIn: true,
   };
 } else {
-  showLoginDrawer.value = true;
+  const ua = navigator.userAgent.toLowerCase();
+  if (ua.match(/MicroMessenger/i) == "micromessenger") {
+    console.log("isWechat");
+    const wechat_code = route.query.code;
+    if (wechat_code) {
+      const result = await api("/user/wechat_login", "POST", {
+        code: wechat_code,
+      });
+      if (result.success) {
+        globalState.user = {
+          username: result.data.username,
+          user_role: result.data.user_role,
+          loggedIn: true,
+        };
+      }
+    } else {
+      const target_url =
+        "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc501b510444881e2&redirect_uri=" +
+        encodeURI(window.location.href) +
+        "&response_type=code&scope=snsapi_userinfo#wechat_redirect";
+      window.location.href = target_url;
+    }
+  } else {
+    showLoginDrawer.value = true;
+  }
 }
+globalState.user.fetched = true;
 
 const loginData = ref({ username: "", password: "" });
 

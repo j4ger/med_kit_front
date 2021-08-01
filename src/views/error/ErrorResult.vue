@@ -1,8 +1,8 @@
 <template>
   <div>
     <n-result
-      status="404"
-      title="404 资源不存在"
+      :status="props.status"
+      :title="props.messages.title"
       :description="props.messages.first"
     >
       <template #footer>
@@ -16,7 +16,7 @@
 import { NResult } from "naive-ui";
 import { defineProps } from "vue";
 
-const props = defineProps({ messages: Object });
+const props = defineProps({ status: String, messages: Object });
 </script>
 
 <style lang="scss" scoped></style>
