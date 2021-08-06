@@ -10,6 +10,14 @@ const routes = [
       ),
   },
   {
+    path: "/profile/submit",
+    name: "预提交档案",
+    component: () =>
+      import(
+        /* webpackChunkName: "submitprofile" */ "../views/profile/SubmitProfile.vue"
+      ),
+  },
+  {
     path: "/product/view/:product_barcode",
     name: "查看产品信息",
     component: () =>

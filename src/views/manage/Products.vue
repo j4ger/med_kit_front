@@ -71,21 +71,17 @@
             打印
           </n-button>
         </div>
-        <div class="flex justify-center">
-          <span class="flex">打印区域</span>
+        <div class="flex justify-center mt-2">
+          <span class="flex">打印预览</span>
         </div>
-        <div class="flex justify-center">
+        <div class="flex justify-center mt-2 h-32">
           <div
-            class="rounded border-4 border-current border-double"
+            class="rounded border-4 border-current border-double bg-white"
             v-show="productDataFetched"
           >
-            <div id="printArea" class="flex flex-col items-center">
-              <div class="flex text-black text-lg pt-2">
-                请扫描二维码填写或绑定档案
-              </div>
-              <div class="flex">
-                <canvas id="QRCodeCanvas"></canvas>
-              </div>
+            <div id="printArea">
+              <p class="printText">请扫描二维码开始使用</p>
+              <div id="QRCodeCanvas" class="printBlock"></div>
             </div>
           </div>
         </div>
@@ -118,18 +114,18 @@ import {
 } from "@vicons/material";
 
 import { inject, ref, watchEffect } from "vue";
-const api = inject("api");
+const medKitApi = inject("api");
 
-const statistics = await api("/product/get_statistics");
+const statistics = await medKitApi("/product/get_statistics");
 const totalPage = Math.ceil(statistics.data.total / 10);
 
 const page = ref(1);
 
-let items = ref(await api("/product/get_products/0"));
+let items = ref(await medKitApi("/product/get_products/0"));
 
 watchEffect(async () => {
   const conpensatedPage = page.value - 1;
-  items.value = await api("/product/get_products/" + conpensatedPage);
+  items.value = await medKitApi("/product/get_products/" + conpensatedPage);
 });
 
 const getTime = (raw) =>
@@ -144,26 +140,70 @@ const showNewProduct = () => {
   showModal.value = true;
 };
 
-import QRCode from "qrcode";
+import QRCode from "qrcodejs2";
 import printJS from "print-js";
 const newProduct = async () => {
-  const result = await api("/product/init_product");
+  const result = await medKitApi("/product/init_product");
   if (result.success) {
-    const QRCodeCanvas = document.getElementById("QRCodeCanvas");
-    console.log(QRCodeCanvas);
-    QRCode.toCanvas(QRCodeCanvas, result.data, { errorCorrectionLevel: "Q" });
+    new QRCode("QRCodeCanvas", { width: 60, height: 60, text: result.data });
     productDataFetched.value = true;
   }
 };
 const printProduct = () => {
-  printJS({ printable: "printArea", type: "html" });
+  printJS({
+    printable: "printArea",
+    type: "html",
+    targetStyles: ["*"],
+    style: `#printArea {
+              background: rgb(255, 255, 255);
+              width: 40mm;
+              page-break-after: avoid;
+              page-break-before: avoid;
+              overflow: hidden;
+              margin: 0 0 0 0;
+              display: block;
+            }
+            .printText {
+              color: black;
+              text-align: center;
+              font-size: 1mm;
+              display: block;
+            }
+            .printBlock > img {
+              margin-left: auto;
+              margin-right: auto;
+              height: 15mm;
+              width: auto;
+              display: block;
+            }
+            @page {
+              size: landscape;
+            }`,
+  });
 };
 </script>
 
-<style scoped>
+<style>
 #printArea {
   background: rgb(255, 255, 255);
-  width: 400px;
-  height: 400px;
+  width: 40mm;
+  page-break-after: avoid;
+  page-break-before: avoid;
+  overflow: hidden;
+  margin: 0 0 0 0;
+  display: block;
+}
+.printText {
+  color: black;
+  text-align: center;
+  font-size: 1mm;
+  display: block;
+}
+.printBlock > img {
+  margin-left: auto;
+  margin-right: auto;
+  height: 15mm;
+  width: auto;
+  display: block;
 }
 </style>

@@ -2,7 +2,7 @@ import nprogress from "nprogress";
 
 export default {
   install: (app, options) => {
-    const api = async function (path, method = "GET", data = undefined) {
+    const medKitApi = async function (path, method = "GET", data = undefined) {
       nprogress.start();
       const result = await fetch(options.base_url + path, {
         method,
@@ -18,7 +18,7 @@ export default {
       }
       return Promise.resolve(inner);
     };
-    app.provide("api", api);
+    app.provide("api", medKitApi);
     app.provide("toast", app._context.provides.$toast);
   },
 };

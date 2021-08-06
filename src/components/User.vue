@@ -185,7 +185,7 @@ import {
 } from "naive-ui";
 
 import { inject, ref } from "vue";
-const api = inject("api");
+const medKitApi = inject("api");
 
 import { useGlobalState } from "../GlobalState";
 const globalState = useGlobalState();
@@ -195,7 +195,7 @@ const showLoginDrawer = ref(false);
 import { useRoute } from "vue-router";
 const route = useRoute();
 
-const loginState = await api("/user/verify_login");
+const loginState = await medKitApi("/user/verify_login");
 if (loginState.success) {
   globalState.user = {
     username: loginState.data.username,
@@ -208,7 +208,7 @@ if (loginState.success) {
     console.log("isWechat");
     const wechat_code = route.query.code;
     if (wechat_code) {
-      const result = await api("/user/wechat_login", "POST", {
+      const result = await medKitApi("/user/wechat_login", "POST", {
         code: wechat_code,
       });
       if (result.success) {
@@ -234,7 +234,7 @@ globalState.user.fetched = true;
 const loginData = ref({ username: "", password: "" });
 
 const login = async () => {
-  const result = await api("/user/login", "POST", loginData.value);
+  const result = await medKitApi("/user/login", "POST", loginData.value);
   if (result.success == true) {
     globalState.user = {
       username: result.data.username,
@@ -246,7 +246,7 @@ const login = async () => {
 };
 
 const register = async () => {
-  const result = await api("/user/register", "POST", loginData.value);
+  const result = await medKitApi("/user/register", "POST", loginData.value);
   if (result.success == true) {
     globalState.user = {
       username: result.data.username,
@@ -269,7 +269,7 @@ const getRole = () => {
 const showManageDrawer = ref(false);
 
 const logout = async () => {
-  const result = await api("/user/logout");
+  const result = await medKitApi("/user/logout");
   if (result.success) {
     showManageDrawer.value = false;
     globalState.user = {
@@ -308,7 +308,7 @@ const rules = {
 };
 
 const changePassword = async () => {
-  const result = await api("/user/change_password", "POST", {
+  const result = await medKitApi("/user/change_password", "POST", {
     username: globalState.user.username,
     password: changePasswordData.value.password,
   });

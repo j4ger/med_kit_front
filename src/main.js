@@ -4,7 +4,7 @@ import VueToast from "vue-toast-notification";
 
 import router from "./router";
 
-import api from "./api";
+import medKitApi from "./api";
 import { api_base_url } from "./config";
 
 import App from "./App.vue";
@@ -19,5 +19,5 @@ nprogress.configure({ showSpinner: false });
 createApp(App)
   .use(router)
   .use(VueToast, { duration: 7500, position: "bottom" })
-  .use(api, { base_url: api_base_url })
+  .use(medKitApi, { base_url: api_base_url })
   .mount("#app");

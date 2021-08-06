@@ -81,7 +81,7 @@ const formRef = ref(null);
 
 const toast = inject("toast");
 
-const api = inject("api");
+const medKitApi = inject("api");
 
 import { useRoute, useRouter } from "vue-router";
 const router = useRouter();
@@ -90,16 +90,21 @@ const productBarcode = useRoute().params.product_barcode;
 const submit = async () => {
   formRef.value.validate(async (errors) => {
     if (!errors) {
-      const result = await api(
-        "/profile/submit_profile/" + productBarcode,
-        "POST",
-        values.value
-      );
+      const path =
+        "/profile/submit_profile" +
+        (productBarcode ? "/" + productBarcode : "");
+      const result = await medKitApi(path, "POST", values.value);
       if (result.success) {
-        router.replace({
-          name: "查看产品信息",
-          params: { product_barcode: productBarcode },
-        });
+        if (productBarcode) {
+          router.replace({
+            name: "查看产品信息",
+            params: { product_barcode: productBarcode },
+          });
+        } else {
+          router.push({
+            name: "查看档案",
+          });
+        }
       }
     } else {
       errors.flat().forEach((item) => toast.error(item.message));
