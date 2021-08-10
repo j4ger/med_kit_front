@@ -31,7 +31,7 @@
             size="large"
             v-if="productDigest.data.current_stage == 'Initialized'"
             v-show="showSubmitButton"
-            >填写
+            >填写档案
           </n-button>
           <n-popselect
             v-if="existingProfiles.success"
@@ -51,13 +51,13 @@
           </n-popselect>
           <n-button
             type="primary"
-            @click="showModal = true"
+            @click="showBindProfileModal = true"
             size="large"
             v-show="!showSubmitButton"
             >绑定
           </n-button>
           <n-modal
-            v-model:show="showModal"
+            v-model:show="showBindProfileModal"
             preset="dialog"
             title="确认绑定"
             positive-text="确认"
@@ -85,6 +85,34 @@
               <n-time :time="selectedProfileObject.birth_date_time" />
             </n-h4>
           </n-modal>
+          <n-button
+            type="primary"
+            @click="showSampleTimeSelect = true"
+            size="large"
+            v-if="productDigest.data.current_stage == 'Submitted'"
+            >提交采样时间
+          </n-button>
+          <n-modal
+            v-model:show="showSampleTimeSelect"
+            preset="dialog"
+            title="提交采样时间"
+            positive-text="确认"
+            @positive-click="handleSubmitSampleTime"
+            negative-text="取消"
+          >
+            <n-date-picker
+              v-model:value="sampleTime"
+              type="datetime"
+              clearable
+            />
+          </n-modal>
+          <n-button
+            type="primary"
+            @click="downloadReport"
+            size="large"
+            v-if="productDigest.data.current_stage == 'Finished'"
+            >下载报告
+          </n-button>
         </div>
       </template>
     </n-card>
@@ -101,6 +129,7 @@ import {
   NText,
   NPopselect,
   NModal,
+  NDatePicker,
 } from "naive-ui";
 import {
   ArrowCircleDownOutlined,
@@ -121,7 +150,7 @@ const productDigest = ref(
 );
 
 if (!productDigest.value.success) {
-  router.push({ name: "页面不存在" });
+  router.push({ path: "/error/404" });
 }
 
 const getState = () => {
@@ -143,11 +172,10 @@ const init_time = getTime(productDigest.value.data.init_time);
 
 const gotoSubmit = () => {
   router.push({
-    name: "提交档案",
+    path: "/profile/submit",
     params: { product_barcode: productBarcode },
   });
 };
-//TODO: bind profile
 
 import { ref } from "vue";
 const existingProfiles = await medKitApi("/profile/get_profile_by_user");
@@ -177,7 +205,7 @@ watchEffect(() => {
   }
 });
 
-const showModal = ref(false);
+const showBindProfileModal = ref(false);
 
 const handleBindProfile = async () => {
   const result = await medKitApi(
@@ -188,10 +216,41 @@ const handleBindProfile = async () => {
     }
   );
   if (result.success) {
-    showModal.value = false;
+    showBindProfileModal.value = false;
     productDigest.value = await medKitApi(
       "/product/get_product_digest/" + productBarcode
     );
+  }
+};
+
+const sampleTime = ref(null);
+const showSampleTimeSelect = ref(false);
+
+const handleSubmitSampleTime = async () => {
+  const result = await medKitApi(
+    "/product/submit_sample_time/" + productBarcode,
+    "POST",
+    {
+      sample_time: sampleTime.value,
+    }
+  );
+  if (result.success) {
+    showSampleTimeSelect.value = false;
+    productDigest.value = await medKitApi(
+      "/product/get_product_digest/" + productBarcode
+    );
+  }
+};
+
+const downloadReport = async () => {
+  const report = await medKitApi(
+    "/report/get_report/" + productDigest.value.data.report_id
+  );
+  if (report.success) {
+    const downloadElement = document.createElement("a");
+    downloadElement.download = productBarcode + "-检测报告.pdf";
+    downloadElement.href = report.data;
+    downloadElement.click();
   }
 };
 </script>

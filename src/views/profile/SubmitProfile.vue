@@ -97,12 +97,12 @@ const submit = async () => {
       if (result.success) {
         if (productBarcode) {
           router.replace({
-            name: "查看产品信息",
+            path: "/product/view",
             params: { product_barcode: productBarcode },
           });
         } else {
           router.push({
-            name: "查看档案",
+            path: "/profiles",
           });
         }
       }

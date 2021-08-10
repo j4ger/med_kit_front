@@ -2,13 +2,19 @@ import nprogress from "nprogress";
 
 export default {
   install: (app, options) => {
-    const medKitApi = async function (path, method = "GET", data = undefined) {
+    const medKitApi = async function (
+      path,
+      method = "GET",
+      data = undefined,
+      moreOptions = undefined
+    ) {
       nprogress.start();
       const result = await fetch(options.base_url + path, {
         method,
         //TODO: CORS
         credentials: "include",
         ...(data && { body: JSON.stringify(data) }),
+        ...moreOptions,
       });
       nprogress.done();
       const inner = await result.json();

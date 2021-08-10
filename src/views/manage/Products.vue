@@ -47,19 +47,35 @@
             <n-time :time="getTime(item.init_time)" type="datetime"></n-time>
           </template>
         </n-thing>
+        <template #suffix>
+          <n-tooltip trigger="hover" placement="left">
+            <template #trigger>
+              <n-button
+                text
+                class="text-3xl"
+                @click="gotoUploadReport(item.product_barcode)"
+              >
+                <n-icon class="rounded-full hover:bg-current">
+                  <FileUploadOutlined />
+                </n-icon>
+              </n-button>
+            </template>
+            上传档案
+          </n-tooltip>
+        </template>
       </n-list-item>
     </n-list>
     <n-modal v-model:show="showModal">
       <n-card title="新建产品" class="w-2/3 h-2/3">
-        <div class="flex justify-center space-x-2">
+        <div class="flex justify-center space-x-2" v-show="printerServiceReady">
           <n-button @click="newProduct" round size="large" class="flex">
             <template #icon>
               <n-icon><AddBoxOutlined /></n-icon>
             </template>
-            新建
+            新建并打印
           </n-button>
           <n-button
-            v-show="productDataFetched"
+            v-show="newProductDataFetched"
             @click="printProduct"
             round
             size="large"
@@ -71,20 +87,9 @@
             打印
           </n-button>
         </div>
-        <div class="flex justify-center mt-2">
-          <span class="flex">打印预览</span>
-        </div>
-        <div class="flex justify-center mt-2 h-32">
-          <div
-            class="rounded border-4 border-current border-double bg-white"
-            v-show="productDataFetched"
-          >
-            <div id="printArea">
-              <p class="printText">请扫描二维码开始使用</p>
-              <div id="QRCodeCanvas" class="printBlock"></div>
-            </div>
-          </div>
-        </div>
+        <n-alert title="错误" type="error" v-show="!printerServiceReady"
+          >打印服务未启动，请检查菜鸟打印服务运行状态</n-alert
+        >
       </n-card>
     </n-modal>
   </div>
@@ -102,6 +107,8 @@ import {
   NButton,
   NModal,
   NCard,
+  NTooltip,
+  NAlert,
 } from "naive-ui";
 import {
   AddChartOutlined,
@@ -111,6 +118,7 @@ import {
   AccessTimeOutlined,
   AddBoxOutlined,
   LocalPrintshopOutlined,
+  FileUploadOutlined,
 } from "@vicons/material";
 
 import { inject, ref, watchEffect } from "vue";
@@ -131,79 +139,90 @@ watchEffect(async () => {
 const getTime = (raw) =>
   Date.parse(raw) - new Date().getTimezoneOffset() * 60000;
 
-const showModal = ref(false);
+import { useRouter } from "vue-router";
+const router = useRouter();
 
-const productDataFetched = ref(false);
-
-const showNewProduct = () => {
-  productDataFetched.value = false;
-  showModal.value = true;
-};
-
-import QRCode from "qrcodejs2";
-import printJS from "print-js";
-const newProduct = async () => {
-  const result = await medKitApi("/product/init_product");
-  if (result.success) {
-    new QRCode("QRCodeCanvas", { width: 60, height: 60, text: result.data });
-    productDataFetched.value = true;
-  }
-};
-const printProduct = () => {
-  printJS({
-    printable: "printArea",
-    type: "html",
-    targetStyles: ["*"],
-    style: `#printArea {
-              background: rgb(255, 255, 255);
-              width: 40mm;
-              page-break-after: avoid;
-              page-break-before: avoid;
-              overflow: hidden;
-              margin: 0 0 0 0;
-              display: block;
-            }
-            .printText {
-              color: black;
-              text-align: center;
-              font-size: 1mm;
-              display: block;
-            }
-            .printBlock > img {
-              margin-left: auto;
-              margin-right: auto;
-              height: 15mm;
-              width: auto;
-              display: block;
-            }
-            @page {
-              size: landscape;
-            }`,
+const gotoUploadReport = (target_barcode) => {
+  router.push({
+    name: "上传报告",
+    params: { product_barcode: target_barcode },
   });
 };
-</script>
 
-<style>
-#printArea {
-  background: rgb(255, 255, 255);
-  width: 40mm;
-  page-break-after: avoid;
-  page-break-before: avoid;
-  overflow: hidden;
-  margin: 0 0 0 0;
-  display: block;
-}
-.printText {
-  color: black;
-  text-align: center;
-  font-size: 1mm;
-  display: block;
-}
-.printBlock > img {
-  margin-left: auto;
-  margin-right: auto;
-  height: 15mm;
-  width: auto;
-  display: block;
-}
-</style>
+const showModal = ref(false);
+
+const printerServiceReady = ref(false);
+let printerServiceSocket = null;
+
+const newProductDataFetched = ref(false);
+
+const showNewProduct = () => {
+  newProductDataFetched.value = false;
+  showModal.value = true;
+
+  if (!printerServiceReady.value) {
+    const newSocket = new WebSocket("ws://localhost:13528");
+    newSocket.onopen = () => {
+      printerServiceSocket = newSocket;
+      printerServiceReady.value = true;
+
+      newSocket.onclose = () => {
+        printerServiceReady.value = false;
+      };
+      newSocket.onmessage = (event) => {
+        console.log("Got WebSocket message:" + event);
+      };
+    };
+  }
+};
+
+let createdProduct = null;
+const newProduct = async () => {
+  createdProduct = await medKitApi("/product/init_product");
+  if (createdProduct.success) {
+    newProductDataFetched.value = true;
+    printProduct();
+  }
+};
+
+const printProduct = () => {
+  console.log("print");
+  const printRequest = genPrinterRequestObject("print");
+  printRequest.task = {
+    taskID: genUuid(),
+    // preview: true,
+    // previewType: "image",
+    documents: [
+      {
+        documentID: genUuid(),
+        contents: [
+          {
+            data: {
+              qrcodeurl: createdProduct.data,
+            },
+            templateURL:
+              "http://cloudprint.cainiao.com/template/standard/465617/4",
+          },
+        ],
+      },
+    ],
+  };
+  printerServiceSocket.send(JSON.stringify(printRequest));
+};
+
+const genUuid = () =>
+  "xxxxxxxx".replace(/[x]/g, function (c) {
+    const r = (Math.random() * 16) | 0,
+      v = c == "x" ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+
+const genPrinterRequestObject = (command) => {
+  return {
+    requestID: genUuid(),
+    version: "1.0",
+    cmd: command,
+  };
+};
+</script>
+<style></style>

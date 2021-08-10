@@ -104,7 +104,7 @@
         <div>
           <n-button type="error" ghost @click="logout">
             <template #icon>
-              <n-icon color="white"> <LogOutOutlined /></n-icon>
+              <n-icon> <LogOutOutlined /></n-icon>
             </template>
             登出
           </n-button>
@@ -115,9 +115,15 @@
             class="ml-4"
           >
             <template #icon>
-              <n-icon color="white"> <PasswordOutlined /></n-icon>
+              <n-icon> <PasswordOutlined /></n-icon>
             </template>
             更改密码
+          </n-button>
+          <n-button type="default" ghost @click="gotoManage" class="ml-4">
+            <template #icon>
+              <n-icon> <MoreOutlined /></n-icon>
+            </template>
+            管理
           </n-button>
         </div>
       </n-drawer-content>
@@ -172,6 +178,7 @@ import {
   ManageAccountsOutlined,
   LogOutOutlined,
   PasswordOutlined,
+  MoreOutlined,
 } from "@vicons/material";
 import {
   NButton,
@@ -315,6 +322,13 @@ const changePassword = async () => {
   if (result.success) {
     showChangePasswordDrawer.value = false;
   }
+};
+
+import { useRouter } from "vue-router";
+const router = useRouter();
+const gotoManage = () => {
+  router.push({ path: "/manage" });
+  showManageDrawer.value = false;
 };
 </script>
 

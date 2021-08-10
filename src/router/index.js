@@ -55,6 +55,14 @@ const routes = [
             /* webpackChunkName: "manageusers" */ "../views/manage/Users.vue"
           ),
       },
+      {
+        path: "products/upload/:product_barcode",
+        name: "上传报告",
+        component: () =>
+          import(
+            /* webpackChunkName: "uploadreport" */ "../views/manage/UploadReport.vue"
+          ),
+      },
     ],
   },
   {
@@ -86,6 +94,22 @@ const routes = [
         title: "权限错误",
         first: "请检查你的账户",
         second: "或许应该重新登录一次",
+      },
+    },
+  },
+  {
+    path: "/error/404",
+    name: "404错误",
+    component: () =>
+      import(
+        /* webpackChunkName: "errorresult" */ "../views/error/ErrorResult.vue"
+      ),
+    props: {
+      status: "404",
+      messages: {
+        title: "资源不存在",
+        first: "这可能是二维码损坏了",
+        second: "如果多次重试仍是这样，请联系客服",
       },
     },
   },

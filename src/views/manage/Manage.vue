@@ -63,6 +63,6 @@ if (
     globalState.user.user_role == "Admin"
   )
 ) {
-  router.push({ name: "401错误" });
+  router.push({ path: "/error/401" });
 }
 </script>

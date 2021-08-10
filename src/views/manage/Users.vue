@@ -39,7 +39,7 @@
         <template #suffix>
           <n-tooltip trigger="hover" placement="left">
             <template #trigger>
-              <n-button text class="text-3xl">
+              <n-button text class="text-3xl" @click="removeUser(item.id)">
                 <n-icon class="rounded-full hover:bg-current">
                   <PersonRemoveAlt1Outlined />
                 </n-icon>
@@ -49,7 +49,7 @@
           </n-tooltip>
           <n-tooltip trigger="hover" placement="left">
             <template #trigger>
-              <n-button text class="text-3xl">
+              <n-button text class="text-3xl" @click="changeUserRole(item.id)">
                 <n-icon class="rounded-full hover:bg-current">
                   <AdminPanelSettingsOutlined />
                 </n-icon>
@@ -60,6 +60,25 @@
         </template>
       </n-list-item>
     </n-list>
+    <n-modal
+      v-model:show="showRemoveConfirm"
+      preset="dialog"
+      title="确认删除用户？"
+      positive-text="确认"
+      @positive-click="handleRemoveUser"
+      negative-text="取消"
+    >
+    </n-modal>
+    <n-modal
+      v-model:show="showChangeRoleModal"
+      preset="dialog"
+      title="选择新用户类型"
+      positive-text="确认"
+      @positive-click="handleChangeRole"
+      negative-text="取消"
+    >
+      <n-select v-model:value="selectedRole" :options="roleOptions" />
+    </n-modal>
   </div>
 </template>
 
@@ -73,6 +92,9 @@ import {
   NTime,
   NThing,
   NTooltip,
+  NButton,
+  NModal,
+  NSelect,
 } from "naive-ui";
 import {
   AccountCircleOutlined,
@@ -100,4 +122,49 @@ watchEffect(async () => {
 //TODO: remove, change role
 const getTime = (raw) =>
   Date.parse(raw) - new Date().getTimezoneOffset() * 60000;
+
+const showRemoveConfirm = ref(false);
+const showChangeRoleModal = ref(false);
+
+const selectedUser = ref(null);
+
+const selectedRole = ref(null);
+const roleOptions = [
+  { label: "普通用户", value: "User" },
+  { label: "员工", value: "Staff" },
+  { label: "管理员", value: "Admin" },
+];
+
+const removeUser = (userId) => {
+  selectedUser.value = userId;
+  showRemoveConfirm.value = true;
+};
+const changeUserRole = (userId) => {
+  selectedUser.value = userId;
+  showChangeRoleModal.value = true;
+};
+
+const handleRemoveUser = async () => {
+  const result = await medKitApi("/user/remove_user", "POST", {
+    user_id: selectedUser.value,
+  });
+  if (result.success) {
+    showRemoveConfirm.value = false;
+    selectedUser.value = null;
+    const conpensatedPage = page.value - 1;
+    items.value = await medKitApi("/user/get_users/" + conpensatedPage);
+  }
+};
+const handleChangeRole = async () => {
+  const result = await medKitApi("/user/change_user_role", "POST", {
+    user_id: selectedUser.value,
+    new_role: selectedRole.value,
+  });
+  if (result.success) {
+    showChangeRoleModal.value = false;
+    selectedUser.value = null;
+    const conpensatedPage = page.value - 1;
+    items.value = await medKitApi("/user/get_users/" + conpensatedPage);
+  }
+};
 </script>
